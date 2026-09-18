@@ -1,0 +1,80 @@
+# The release before `mini`, so that `diff` has two sides to compare. Every
+# difference is deliberate and named in tests/diff.rs.
+#
+# A small release that exercises the awkward parts of a real one:
+# a nested document IRI, a version IRI under the namespace, a reused term
+# declared in place, and a shape whose IRI is in this namespace but which is
+# defined in another file.
+
+@prefix ex:      <https://example.org/vocab/> .
+@prefix ex-cat:  <https://example.org/vocabulary/category/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix adms:    <http://www.w3.org/ns/adms#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix unused:  <https://example.org/unused/> .
+
+<https://example.org/vocab/> a owl:Ontology ;
+    owl:versionIRI <https://example.org/vocab/0.1.0/> ;
+    owl:versionInfo "0.1.0" ;
+    vann:preferredNamespacePrefix "ex" ;
+    vann:preferredNamespaceUri "https://example.org/vocab/" ;
+    adms:status <http://purl.org/adms/status/UnderDevelopment> ;
+    dcterms:title "Example Vocabulary" ;
+    dcterms:description "A fixture with two classes." ;
+    dcterms:abstract "This vocabulary is centered on three classes." ;
+    dcterms:creator [ a foaf:Person ; foaf:name "A Curator" ] ;
+    dcterms:created "2026-01-01"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
+    dcterms:hasPart ex-cat: .
+
+ex:Thing a owl:Class ;
+    rdfs:label "Thing" ;
+    rdfs:comment "Anything at all." ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .
+
+ex:Widget a owl:Class ;
+    rdfs:label "Widget" ;
+    rdfs:comment "A thing that widgets." ;
+    rdfs:subClassOf ex:Thing ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .
+
+ex:category a owl:ObjectProperty ;
+    rdfs:label "category" ;
+    rdfs:comment "The category of a widget." ;
+    rdfs:domain ex:Widget ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .
+
+ex:pairedWith a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:label "paired with" ;
+    rdfs:comment "Symmetric pairing between widgets." ;
+    rdfs:domain ex:Widget ;
+    rdfs:range ex:Widget ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .
+
+ex:serial a owl:DatatypeProperty ;
+    # Relabelled and redefined in `mini`: editorial, not breaking.
+    rdfs:label "serial number" ;
+    rdfs:comment "A number identifying one widget." ;
+    rdfs:domain ex:Widget ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .
+
+# A term reused from another vocabulary, declared here only to say how it is
+# used. Its namespace is not minted by this release, so it is foreign.
+dcterms:title a rdf:Property ;
+    rdfs:comment "Used in this vocabulary for the name of a widget." .
+
+# Removed in `mini`: a consumer using it will break.
+ex:legacyCode a owl:DatatypeProperty ;
+    rdfs:label "legacy code"@en ;
+    rdfs:comment "An identifier kept from an older system."@en ;
+    rdfs:domain ex:Widget ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://example.org/vocab/> .

@@ -1,0 +1,56 @@
+# Citation metadata, in the Citation File Format (https://citation-file-format.github.io).
+# GitHub reads this file and offers a "Cite this repository" button from it.
+#
+# Two fields are deliberately absent until they exist, rather than carrying a
+# placeholder that could be cited by mistake:
+#
+#   doi             once the software is deposited and given one
+#   date-released   once there is a release to date
+#
+# A `preferred-citation` block belongs here too once the BioHackathon 2026
+# preprint has a DOI, so that citing the software cites the paper instead.
+#
+# The format has no field for a ROR id, so the affiliations here are the
+# free-text names only. The RORs live in the preprint's front matter, which
+# does have a field for them.
+
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: iyo
+abstract: >-
+  A publishing tool for OWL, RDFS, SKOS and SHACL vocabularies. It writes a
+  themeable website with one page per term, each term also available as
+  Markdown, Turtle and JSON-LD, and context files for AI agents alongside the
+  human-readable documentation. It also writes a manifest describing the content
+  negotiation the site needs, compiles that manifest into configuration for
+  several hosts, and can check a live deployment against it.
+type: software
+authors:
+  - given-names: Nishad
+    family-names: Thalhath
+    email: nishad@thalhath.org
+    orcid: "https://orcid.org/0000-0001-9845-9714"
+    affiliation: "RIKEN Center for Integrative Medical Sciences"
+    city: Yokohama
+    region: Kanagawa
+    country: JP
+  - given-names: Kozo
+    family-names: Nishida
+    email: knishida@riken.jp
+    orcid: "https://orcid.org/0000-0001-8501-7319"
+    affiliation: "RIKEN Center for Biosystems Dynamics Research"
+    city: Kobe
+    region: Hyōgo
+    country: JP
+repository-code: "https://github.com/bffo-project/iyo"
+license: Apache-2.0
+version: 0.1.0
+keywords:
+  - rdf
+  - owl
+  - skos
+  - shacl
+  - vocabulary
+  - linked-data
+  - content-negotiation
+  - static-site-generator

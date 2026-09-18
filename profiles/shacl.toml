@@ -1,0 +1,32 @@
+# A SHACL shapes document.
+#
+# The tool consumes shapes as documentation; it does not derive them. BFFO's
+# hand-written shapes carry field names, descriptions, cardinalities,
+# enumerations and the only formal property-to-scheme bindings, none of which
+# exist in the OWL.
+#
+# Priority is above skos and dcap so that a shapes file whose document node is
+# also typed owl:Ontology is still recognised as shapes.
+
+id = "shacl"
+extends = "generic"
+title = "SHACL shapes"
+
+[detect]
+priority = 50
+file_has_type = [
+  "http://www.w3.org/ns/shacl#NodeShape",
+  "http://www.w3.org/ns/shacl#PropertyShape",
+]
+
+[annotations]
+label = [
+  "http://www.w3.org/2000/01/rdf-schema#label",
+  "http://www.w3.org/ns/shacl#name",
+  "http://purl.org/dc/terms/title",
+]
+definition = [
+  "http://www.w3.org/2000/01/rdf-schema#comment",
+  "http://www.w3.org/ns/shacl#description",
+  "http://purl.org/dc/terms/description",
+]

@@ -1,0 +1,216 @@
+{% extends "base.html.jinja" %}
+{% import "partials/facts.html.jinja" as f %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block meta %}
+{%- if document.description %}
+<meta name="description" content="{{ document.description.value | oneline }}">
+{%- endif %}
+{%- endblock %}
+
+{% block links %}
+<link rel="canonical" href="{{ document.url | url }}">
+{%- if page.cite_as %}
+<link rel="cite-as" href="{{ document.iri | url }}">
+{%- endif %}
+{%- for s in document.siblings %}
+<link rel="alternate" type="{{ s.media_type | url }}" href="{{ s.url | rel }}" title="{{ s.label }}">
+{%- endfor %}
+<link rel="describedby" href="{{ document.llms_url | rel }}">
+{%- if page.license %}
+<link rel="license" href="{{ page.license | url }}">
+{%- endif %}
+{%- endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ page.jsonld | safe }}</script>
+{%- endblock %}
+
+{% block contents %}
+<nav aria-labelledby="iyo-contents-title" class="contents">
+  <p class="nav-title" id="iyo-contents-title">Contents</p>
+  <ul class="nav-list">
+    <li><a href="#iyo-metadata">Metadata</a></li>
+    {%- if document.hierarchy %}<li><a href="#iyo-hierarchy">Hierarchy</a></li>{% endif %}
+    {%- for s in document.sections %}
+    <li><a href="#iyo-{{ s.id }}">{{ s.title }}</a></li>
+    {%- endfor %}
+    {%- if document.changes_url %}<li><a href="#iyo-changes">Changes</a></li>{% endif %}
+    {%- if document.reused %}<li><a href="#iyo-reused">Reused terms</a></li>{% endif %}
+    <li><a href="#iyo-namespaces">Namespaces</a></li>
+    <li><a href="#iyo-formats">Other formats</a></li>
+  </ul>
+</nav>
+{%- endblock %}
+
+{% block main %}
+{%- if page.banner %}
+<aside class="banner" aria-labelledby="iyo-status-title">
+  <p class="banner-title" id="iyo-status-title">{{ page.banner.title }}</p>
+  {%- for p in page.banner.paragraphs %}
+  <p>{{ p }}</p>
+  {%- endfor %}
+</aside>
+{%- endif %}
+
+<h1>{{ document.title }}</h1>
+<p class="iri"><code lang="zxx" translate="no">{{ document.namespace }}</code></p>
+
+{%- if document.description %}
+<p class="lead"{{ document.description.lang | lang_attr }}>{{ document.description.value }}</p>
+{%- endif %}
+
+{%- for p in document.abstract_paragraphs %}
+<p>{{ p }}</p>
+{%- endfor %}
+
+<section aria-labelledby="iyo-metadata">
+  <h2 id="iyo-metadata">Metadata</h2>
+  <dl class="facts">
+    {{ f.fact("Namespace IRI", f.mono(document.namespace)) }}
+    {%- if document.prefix %}
+    {{ f.fact("Preferred prefix", f.mono(document.prefix)) }}
+    {%- endif %}
+    {%- if document.version %}{{ f.fact("Version", document.version) }}{% endif %}
+    {%- if document.version_iri %}
+    {{ f.fact("This version", f.link(document.version_iri)) }}
+    {%- endif %}
+    {%- if document.versions %}
+    {{ f.fact("Releases", f.releases(document.versions)) }}
+    {{ f.fact("Version history", f.link(document.versions_url, "versions.ttl")) }}
+    {%- endif %}
+    {%- if document.status %}{{ f.fact("Status", document.status) }}{% endif %}
+    {%- for c in document.creators %}{{ f.fact("Creator", c.name | default("(unnamed)")) }}{% endfor %}
+    {%- for p in document.publishers %}{{ f.fact("Publisher", p.name | default("(unnamed)")) }}{% endfor %}
+    {%- for c in document.contributors %}{{ f.fact("Contributor", c.name | default("(unnamed)")) }}{% endfor %}
+    {%- if document.created %}{{ f.fact("Created", document.created) }}{% endif %}
+    {%- if document.modified %}{{ f.fact("Modified", document.modified) }}{% endif %}
+    {%- if document.issued %}{{ f.fact("Issued", document.issued) }}{% endif %}
+    {%- if document.license %}
+    {{ f.fact("Licence of the vocabulary", f.link(document.license)) }}
+    {%- endif %}
+    {%- if document.pdf_url %}
+    {{ f.fact("PDF", f.link(document.pdf_url, "tagged PDF/A")) }}
+    {%- endif %}
+    {%- if document.citation %}{{ f.fact("Cite as", document.citation) }}{% endif %}
+    {%- if document.has_part %}{{ f.fact("Parts", f.refs(document.has_part)) }}{% endif %}
+    {%- for s in document.see_also %}
+    {{ f.fact("See also", f.link(s)) }}
+    {%- endfor %}
+    {{ f.fact("Terms", document.term_count) }}
+  </dl>
+</section>
+
+{%- if document.hierarchy %}
+<section aria-labelledby="iyo-hierarchy">
+  <h2 id="iyo-hierarchy">Hierarchy</h2>
+  {{ page.hierarchy_html | safe }}
+</section>
+{%- endif %}
+
+{%- for s in document.sections %}
+<section aria-labelledby="iyo-{{ s.id }}">
+  <h2 id="iyo-{{ s.id }}">{{ s.title }}</h2>
+  <dl class="term-list">
+    {%- for t in s.terms %}
+    <div class="fact">
+      <dt id="{{ t.anchor }}"><a href="{{ t.doc_url | rel }}">{{ t.label }}</a> <span class="badge">{{ t.kind }}</span></dt>
+      <dd>
+        {%- if t.definition %}<span{{ t.definition.lang | lang_attr }}>{{ t.definition.value | oneline }}</span>{% endif %}
+        {#- A shapes document should say how much each shape asks for without
+            making the reader open it. -#}
+        {%- for view in t.shapes %}
+        <span class="muted field-note">{{ view.fields | length }} field{% if view.fields | length != 1 %}s{% endif %}, {{ view.required_count }} required; applies to {{ view.targeting }}</span>
+        {%- endfor %}
+        <span class="muted"><code lang="zxx" translate="no">{{ t.curie | default(t.iri) }}</code></span>
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+</section>
+{%- endfor %}
+
+{%- if document.changes_url %}
+<section aria-labelledby="iyo-changes">
+  <h2 id="iyo-changes">Changes in this release</h2>
+  <p>{{ document.change_count }} change{% if document.change_count != 1 %}s{% endif %} since the
+  previous release{% if document.breaking_count %}, {{ document.breaking_count }} of which may break
+  a consumer that worked before{% endif %}. The full list is in
+  <a href="{{ document.changes_url | rel }}">changes.md</a>.</p>
+  {%- if document.removed %}
+  <h3 id="iyo-removed">Terms no longer here</h3>
+  <p class="muted">A link into the previous release lands here. These terms have no page any more,
+  so this is where their identifiers are accounted for.</p>
+  <dl class="facts">
+    {%- for r in document.removed %}
+    {#- The anchor the term had, so an old fragment resolves. -#}
+    <div class="fact">
+      <dt id="{{ r.anchor }}">{{ r.label }}</dt>
+      <dd><code lang="zxx" translate="no">{{ r.iri }}</code> <span class="muted field-note">{{ r.detail }}</span></dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- endif %}
+</section>
+{%- endif %}
+
+{%- if document.reused %}
+<section aria-labelledby="iyo-reused">
+  <h2 id="iyo-reused">Terms reused from other vocabularies</h2>
+  <p class="muted">These terms are defined elsewhere. This vocabulary records how it uses them.</p>
+  <section class="scroll-x" aria-labelledby="iyo-reused-caption" tabindex="0">
+    <table>
+      <caption id="iyo-reused-caption">Reused terms and how this vocabulary uses them</caption>
+      <thead><tr><th scope="col">Term</th><th scope="col">Used for</th></tr></thead>
+      <tbody>
+      {%- for t in document.reused %}
+        <tr>
+          <th scope="row" id="{{ t.anchor }}"><code lang="zxx" translate="no">{{ t.curie | default(t.iri) }}</code></th>
+          <td>
+            {%- if t.definition %}{{ t.definition.value | oneline }}{% endif %}
+            {#- A reused term has no page of its own, so what a shape requires
+                of it can only be said here. It is a note rather than a column
+                so the table still fits a narrow screen, and it names its
+                shape so that the vocabulary's own use and a shape's
+                constraint are never read as one claim. -#}
+            {%- for c in t.constraints %}
+            <span class="muted field-note">Constrained by {{ f.refs([c.shape]) }}{% if c.name %}, as <q>{{ c.name }}</q>{% endif %}{% if c.cardinality %}, {{ c.cardinality }}{% if c.required %} required{% endif %}{% endif %}{% if c.description %}: {{ c.description }}{% endif %}</span>
+            {%- endfor %}
+          </td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </section>
+</section>
+{%- endif %}
+
+<section aria-labelledby="iyo-namespaces">
+  <h2 id="iyo-namespaces">Namespaces</h2>
+  <section class="scroll-x" aria-labelledby="iyo-namespaces-caption" tabindex="0">
+    <table>
+      <caption id="iyo-namespaces-caption">Prefixes used in this release</caption>
+      <thead><tr><th scope="col">Prefix</th><th scope="col">Namespace IRI</th></tr></thead>
+      <tbody>
+      {%- for p in site.prefixes %}
+        <tr>
+          <th scope="row"><code lang="zxx" translate="no">{{ p.0 }}</code></th>
+          <td><code lang="zxx" translate="no">{{ p.1 }}</code></td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<section aria-labelledby="iyo-formats">
+  <h2 id="iyo-formats">Other formats</h2>
+  <ul class="nav-list">
+    {%- for s in document.siblings %}
+    <li><a href="{{ s.url | rel }}">{{ s.label }}</a></li>
+    {%- endfor %}
+    <li><a href="{{ document.llms_url | rel }}">Agent index (llms.txt)</a></li>
+  </ul>
+</section>
+{%- endblock %}

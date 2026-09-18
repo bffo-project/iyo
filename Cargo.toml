@@ -1,0 +1,63 @@
+[package]
+name = "iyo"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+authors = ["Nishad Thalhath <nishad@thalhath.org>", "Kozo Nishida <knishida@riken.jp>"]
+description = "Publish OWL, RDFS, SKOS and SHACL vocabularies as a static site with per-term HTML, Markdown, Turtle and JSON-LD, llms.txt, and a host-neutral content-negotiation manifest."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/bffo-project/iyo"
+keywords = ["rdf", "owl", "skos", "vocabulary", "linked-data"]
+categories = ["command-line-utilities", "web-programming"]
+# `dev-docs/` exists on disk and in no git history, so without this it would
+# be swept into the upload. `testdata/` stays in: the crate ships its tests,
+# and they load those fixtures.
+exclude = ["dev-docs/"]
+
+[lib]
+name = "iyo"
+path = "src/lib.rs"
+
+[[bin]]
+name = "iyo"
+path = "src/main.rs"
+
+# Versions verified against the crates.io API on 2026-09-10. Never bump one
+# from memory: check the registry.
+[dependencies]
+# RDF model and I/O. The Oxigraph family vendors the W3C test suites and has
+# shipped JSON-LD 1.1 since 0.5.5.
+oxrdf = "0.3.4"
+oxrdfio = "0.2.6"
+oxttl = "0.2.4"
+
+# CLI, configuration, serialisation.
+clap = { version = "4.6.6", features = ["derive", "env", "wrap_help"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151", features = ["preserve_order"] }
+toml = "1.1.5"
+anyhow = "1.0.104"
+camino = { version = "1.2.5", features = ["serde1"] }
+# globset was dropped because the design asks for a small dependency set, and
+# `load::expand_inputs` implements the one wildcard pattern this tool needs.
+# (The original reason was that globset 0.4.20 required Rust 1.88 while this
+# crate built on 1.87. That no longer distinguishes them: let-chains put this
+# crate on 1.88 too.)
+
+# Rendering.
+minijinja = { version = "2.24.0", features = ["loader"] }
+rust-embed = { version = "8.12.0", features = ["debug-embed"] }
+pulldown-cmark = { version = "0.13.4", default-features = false, features = ["html"] }
+
+# Determinism hash over the output tree.
+sha2 = "0.11.0"
+percent-encoding = "2.3.2"
+
+[dev-dependencies]
+# Golden-file tests compare whole output trees.
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

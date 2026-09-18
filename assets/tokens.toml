@@ -1,0 +1,127 @@
+# iyo default theme tokens.
+#
+# Roles, not hues (docs/theming.md, "Design tokens: the thirteen colour
+# roles"). The palette is neutral: the only chromatic values in the whole
+# file are `link` and `link-visited`, so a brand theme that wants its own
+# colour overrides two lines per scheme and inherits everything else.
+#
+# Every value here is compiled to a CSS custom property in `assets/tokens.css`
+# and every pair the templates actually produce is checked by the build-time
+# contrast gate before a byte is written. The ratios are in
+# notes-prep/tokens.md and are reproduced by notes-prep/contrast.py.
+
+schema = "iyo.tokens/1"
+
+[meta]
+name = "default"
+version = "1"
+description = "Brand-neutral tokens with a build-time WCAG 2.x contrast gate."
+license = "Apache-2.0"
+
+# --------------------------------------------------------------------------
+# Colour. Thirteen roles, two schemes. Same key set in both, enforced by the
+# type: a missing role is a parse error, not a fallback.
+# --------------------------------------------------------------------------
+
+[color.light]
+text         = "#16181D"   # L 0.009125
+text-muted   = "#565B63"   # L 0.103615
+link         = "#1F5AA8"   # L 0.104308
+link-visited = "#6E3D9B"   # L 0.090190
+focus        = "#111418"   # L 0.006854
+surface      = "#FFFFFF"   # L 1.000000
+surface-alt  = "#F4F5F7"   # L 0.912533
+surface-code = "#EDEFF2"   # L 0.861483
+border       = "#787E88"   # L 0.206924
+badge-fg     = "#22262C"   # L 0.019082
+badge-bg     = "#E4E7EC"   # L 0.797019
+banner-fg    = "#16181D"   # L 0.009125
+banner-bg    = "#E8EBF0"   # L 0.828637
+
+[color.dark]
+text         = "#E6E8EC"   # L 0.805923
+text-muted   = "#A7AEB8"   # L 0.419483
+link         = "#8AB4F0"   # L 0.443371
+link-visited = "#C9A6EC"   # L 0.457461
+focus        = "#F2F4F8"   # L 0.903559
+surface      = "#14161A"   # L 0.007971
+surface-alt  = "#1C1F24"   # L 0.013542
+surface-code = "#22262C"   # L 0.019082
+border       = "#79808C"   # L 0.213967
+badge-fg     = "#DCE0E6"   # L 0.742401
+badge-bg     = "#2A2E35"   # L 0.027033
+banner-fg    = "#E6E8EC"   # L 0.805923
+banner-bg    = "#23272E"   # L 0.020056
+
+# --------------------------------------------------------------------------
+# Links. `underline = true` is what makes the palette legal: with underlines
+# off the gate additionally requires link vs text at 3:1 (WCAG 1.4.1, G183),
+# which no dark scheme with an off-white `text` can satisfy. See tokens.md 7.
+# --------------------------------------------------------------------------
+
+[links]
+underline = true
+underline-thickness = "0.08em"
+underline-offset = "0.15em"
+
+# --------------------------------------------------------------------------
+# Type. No font files ship: the stacks are system fonts, so a build stays
+# offline and deterministic. `family-ja` is applied by a `:lang(ja)` rule.
+# Sizes compile to `--font-size-<key>`; 14pt = 18.5px and 18pt = 24px are the
+# WCAG large-text thresholds (Understanding 1.4.3), so only `2` and above are
+# large at normal weight and only `1` and above are large when bold.
+# --------------------------------------------------------------------------
+
+[font-family]
+sans = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif"
+mono = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Noto Sans Mono', monospace"
+ja   = "'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', Meiryo, system-ui, sans-serif"
+
+[font-size]
+"-1" = "0.875rem"   # 14px: badges, footnotes, nav, table captions
+"0"  = "1rem"       # 16px: body
+"1"  = "1.25rem"    # 20px: h4, lead paragraph
+"2"  = "1.5rem"     # 24px: h3
+"3"  = "1.875rem"   # 30px: h2
+"4"  = "2.25rem"    # 36px: h1
+
+[leading]
+body    = "1.6"
+list    = "1.5"
+heading = "1.25"
+
+[space]
+"1" = "0.25rem"   # 4px
+"2" = "0.5rem"    # 8px
+"3" = "0.75rem"   # 12px
+"4" = "1rem"      # 16px
+"5" = "1.5rem"    # 24px
+"6" = "2rem"      # 32px
+"7" = "3rem"      # 48px
+"8" = "4rem"      # 64px
+
+# --------------------------------------------------------------------------
+# Layout. `min-target` is WCAG 2.5.8 Target Size (Minimum): 24 by 24 CSS px.
+# `measure` bounds prose line length; `breakpoint` is where the two-column
+# layout collapses, chosen so no fixed sidebar can produce the 70px content
+# column the audited page had at 375px.
+#
+# `breakpoint` cannot reach a media query. CSS does not resolve `var()` inside
+# `@media`, so the bundled stylesheet writes `60rem` literally and this token
+# only reaches ordinary declarations. Changing it here does not move where the
+# layout collapses: a theme that wants a different breakpoint has to ship a
+# stylesheet with its own `@media` rule. The value is kept in step with the
+# stylesheet so that a theme reading the token gets the number the layout
+# actually uses.
+# --------------------------------------------------------------------------
+
+[layout]
+measure          = "68ch"
+measure-wide     = "84ch"
+min-target       = "24px"
+breakpoint       = "60rem"
+radius           = "4px"
+border-width     = "1px"
+focus-width      = "3px"
+focus-offset     = "2px"
+scroll-padding   = "0px"

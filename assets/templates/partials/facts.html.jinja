@@ -1,0 +1,96 @@
+{#-
+  A description list of one subject's name and value facts.
+
+  `dl` is right here because every row is a property of the same term; a table
+  would claim two axes that do not exist. IRIs, CURIEs and notations carry
+  `lang="zxx" translate="no"` so a screen reader does not read them as prose
+  and a translation service leaves them alone.
+-#}
+{% macro refs(list) -%}
+{%- for r in list -%}
+{%- if not loop.first %}, {% endif -%}
+{%- if r.url %}<a href="{{ r.url | rel }}">{{ r.label }}</a>{% else %}<code lang="zxx" translate="no">{{ r.curie | default(r.iri) }}</code>{% endif -%}
+{%- endfor -%}
+{%- endmacro %}
+
+{% macro fact(name, value) -%}
+<div class="fact"><dt>{{ name }}</dt><dd>{{ value }}</dd></div>
+{%- endmacro %}
+
+{#-
+  A code span and a bare link, as macros rather than inline strings.
+
+  Concatenating tags around a value and applying `| safe` at the end does not
+  work: `~` binds looser than a filter, so only the closing tag is marked
+  safe and the whole row is escaped into visible markup. A macro returns
+  markup by construction and still escapes the value it interpolates.
+-#}
+{% macro mono(value) -%}
+<code lang="zxx" translate="no">{{ value }}</code>
+{%- endmacro %}
+
+{% macro link(url, label) -%}
+<a href="{{ url | rel }}">{{ label | default(url) }}</a>
+{%- endmacro %}
+
+{#-
+  A record template: what a SHACL shape says a record of this kind contains.
+
+  A table is right here where a description list was right for the facts: the
+  rows are different fields and the columns are the same question asked of
+  each, which is two axes. The caption names the shape, so a reader is never
+  left guessing whether a constraint is the vocabulary's or a shape's.
+
+  Three columns, not five. A wider table is unreadable at 320px even inside a
+  scroll container, and a cell holding nothing but a link is a bare target
+  that the inline exception to WCAG 2.5.8 does not cover. The property CURIE
+  and the description are notes under the field name instead of columns of
+  their own.
+-#}
+{% macro fields(view, id, caption) -%}
+<section class="scroll-x" aria-labelledby="{{ id }}-caption" tabindex="0">
+  <table class="fields">
+    <caption id="{{ id }}-caption">{{ caption }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Field</th>
+        <th scope="col">Values</th>
+        <th scope="col">Count</th>
+      </tr>
+    </thead>
+    <tbody>
+    {%- for field in view.fields %}
+      <tr>
+        <th scope="row">
+          {%- if field.property and field.property.url %}<a href="{{ field.property.url | rel }}">{{ field.name }}</a>
+          {%- else %}{{ field.name }}{% endif %}
+          {%- if field.required %} <span class="badge">required</span>{% endif %}
+          {%- if field.deactivated %} <span class="badge">deactivated</span>{% endif %}
+          <span class="muted field-note"><code lang="zxx" translate="no">{{ field.path }}</code></span>
+          {%- if field.description %}<span class="muted field-note">{{ field.description }}</span>{% endif %}
+        </th>
+        <td>
+          {%- if field.value_type %}{{ field.value_type }}{% endif %}
+          {%- if field.in_scheme %}<span class="muted field-note">from {{ refs(field.in_scheme) }}</span>{% endif %}
+          {%- if field.values %}<span class="muted field-note">one of {% for v in field.values %}{% if not loop.first %}, {% endif %}<code lang="zxx" translate="no">{{ v }}</code>{% endfor %}</span>{% endif %}
+          {%- if field.pattern %}<span class="muted field-note">matching <code lang="zxx" translate="no">{{ field.pattern }}</code></span>{% endif %}
+        </td>
+        <td>{% if field.cardinality %}<code lang="zxx" translate="no">{{ field.cardinality }}</code>{% else %}<span class="muted">any</span>{% endif %}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+</section>
+{%- endmacro %}
+
+{#-
+  Archived releases. Each says where its version string came from, because
+  `2026-04-28` read from `dcterms:modified` and `2026-04-28` declared as a
+  release are different claims and a reader cannot tell them apart otherwise.
+-#}
+{% macro releases(list) -%}
+{%- for v in list -%}
+{%- if not loop.first %}, {% endif -%}
+<a href="{{ v.url | rel }}">{{ v.segment }}</a>{% if v.is_version_iri %} <span class="badge">this version</span>{% endif %} <span class="muted">(from {{ v.source }})</span>
+{%- endfor -%}
+{%- endmacro %}

@@ -1,0 +1,231 @@
+{% extends "base.html.jinja" %}
+{% import "partials/facts.html.jinja" as f %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block meta %}
+{%- if term.definition %}
+<meta name="description" content="{{ term.definition.value | oneline }}">
+{%- endif %}
+{%- endblock %}
+
+{% block links %}
+<link rel="canonical" href="{{ term.url | url }}">
+{%- if page.cite_as %}
+<link rel="cite-as" href="{{ term.iri | url }}">
+{%- endif %}
+{%- for s in term.siblings %}
+<link rel="alternate" type="{{ s.media_type | url }}" href="{{ s.url | rel }}" title="{{ s.label }}">
+{%- endfor %}
+<link rel="describedby" href="{{ page.llms_url | rel }}">
+{%- if page.collection_url %}
+<link rel="collection" type="text/html" href="{{ page.collection_url | rel }}">
+{%- endif %}
+{%- if page.license %}
+<link rel="license" href="{{ page.license | url }}">
+{%- endif %}
+{%- endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ page.jsonld | safe }}</script>
+{%- endblock %}
+
+{% block contents %}
+<nav aria-labelledby="iyo-contents-title" class="contents">
+  <p class="nav-title" id="iyo-contents-title">Contents</p>
+  <ul class="nav-list">
+    {%- if term.definition or term.definitions %}<li><a href="#iyo-definition">Definition</a></li>{% endif %}
+    <li><a href="#iyo-facts">Facts</a></li>
+    {%- if term.shapes %}<li><a href="#iyo-shapes">{% if term.kind_id == "nodeshape" %}Constraints{% else %}Record template{% endif %}</a></li>{% endif %}
+    {%- if term.constraints %}<li><a href="#iyo-constraints">Constraints</a></li>{% endif %}
+    {%- if term.notes %}<li><a href="#iyo-notes">Notes</a></li>{% endif %}
+    {%- if term.examples %}<li><a href="#iyo-examples">Examples</a></li>{% endif %}
+    {%- if term.residue %}<li><a href="#iyo-other">Other statements</a></li>{% endif %}
+    <li><a href="#iyo-statements">Statements</a></li>
+    <li><a href="#iyo-formats">Other formats</a></li>
+  </ul>
+</nav>
+{%- endblock %}
+
+{% block main %}
+<article>
+  {%- if page.banner %}
+  <aside class="banner" aria-labelledby="iyo-status-title">
+    <p class="banner-title" id="iyo-status-title">{{ page.banner.title }}</p>
+    {%- for p in page.banner.paragraphs %}
+    <p>{{ p }}</p>
+    {%- endfor %}
+  </aside>
+  {%- endif %}
+
+  <h1 id="{{ term.anchor }}">{{ term.label }} <span class="badge">{{ term.kind }}</span></h1>
+  <p class="iri"><code lang="zxx" translate="no">{{ term.iri }}</code></p>
+
+  {%- if term.deprecated %}
+  <p class="deprecated"><strong>Deprecated.</strong>
+    {%- if term.replaced_by %} Use {{ f.refs(term.replaced_by) }} instead.{% else %} No replacement is recorded.{% endif %}
+  </p>
+  {%- endif %}
+
+  {%- if term.definitions %}
+  <section aria-labelledby="iyo-definition">
+    <h2 id="iyo-definition">Definition</h2>
+    {%- for d in term.definitions %}
+    <p{{ d.lang | lang_attr }}>{{ d.value }}</p>
+    <p class="muted source">Source: <code lang="zxx" translate="no">{{ d.source_label }}</code></p>
+    {%- endfor %}
+    {%- for c in term.comments %}
+    <p{{ c.lang | lang_attr }}>{{ c.value }}</p>
+    {%- endfor %}
+  </section>
+  {%- endif %}
+
+  <section aria-labelledby="iyo-facts">
+    <h2 id="iyo-facts">Facts</h2>
+    <dl class="facts">
+      {{ f.fact("Kind", term.kind) }}
+      {%- if term.curie %}
+      {{ f.fact("CURIE", f.mono(term.curie)) }}
+      {%- endif %}
+      {%- if term.defined_in %}
+      {{ f.fact("Defined by", f.refs([term.defined_in])) }}
+      {%- endif %}
+      {%- for l in term.labels %}
+      {{ f.fact("Label", l.value ~ (' [' ~ l.lang ~ ']' if l.lang else '')) }}
+      {%- endfor %}
+      {%- for a in term.alt_labels %}
+      {{ f.fact("Alternative label", a.value) }}
+      {%- endfor %}
+      {%- if term.concept.notation %}
+      {{ f.fact("Notation", f.mono(term.concept.notation)) }}
+      {%- endif %}
+      {%- if term.super_terms %}
+      {{ f.fact("Subclass of" if term.kind_id == "class" else "Sub-property of", f.refs(term.super_terms)) }}
+      {%- endif %}
+      {%- if term.sub_terms %}
+      {{ f.fact("Narrower terms", f.refs(term.sub_terms)) }}
+      {%- endif %}
+      {%- if term.equivalent %}{{ f.fact("Equivalent to", f.refs(term.equivalent)) }}{% endif %}
+      {%- if term.disjoint_with %}{{ f.fact("Disjoint with", f.refs(term.disjoint_with)) }}{% endif %}
+      {%- if term.property.domain %}{{ f.fact("Domain", f.refs(term.property.domain)) }}{% endif %}
+      {%- if term.property.range %}{{ f.fact("Range", f.refs(term.property.range)) }}{% endif %}
+      {%- if term.property.domain_includes %}{{ f.fact("Domain includes", f.refs(term.property.domain_includes)) }}{% endif %}
+      {%- if term.property.range_includes %}{{ f.fact("Range includes", f.refs(term.property.range_includes)) }}{% endif %}
+      {%- if term.property.inverse_of %}{{ f.fact("Inverse of", f.refs(term.property.inverse_of)) }}{% endif %}
+      {%- if term.property.characteristics %}{{ f.fact("Characteristics", term.property.characteristics | join(", ")) }}{% endif %}
+      {%- if term.concept.in_scheme %}{{ f.fact("In scheme", f.refs(term.concept.in_scheme)) }}{% endif %}
+      {%- if term.concept.top_concept_of %}{{ f.fact("Top concept of", f.refs(term.concept.top_concept_of)) }}{% endif %}
+      {%- if term.concept.broader %}{{ f.fact("Broader", f.refs(term.concept.broader)) }}{% endif %}
+      {%- if term.concept.narrower %}{{ f.fact("Narrower", f.refs(term.concept.narrower)) }}{% endif %}
+      {%- if term.concept.related %}{{ f.fact("Related", f.refs(term.concept.related)) }}{% endif %}
+      {%- for m in term.mappings %}
+      {{ f.fact(m.relation_label, f.refs([m.target])) }}
+      {%- endfor %}
+      {%- if term.status %}{{ f.fact("Status", term.status) }}{% endif %}
+      {%- for s in term.see_also %}
+      {{ f.fact("See also", f.link(s)) }}
+      {%- endfor %}
+    </dl>
+  </section>
+
+  {%- if term.shapes %}
+  <section aria-labelledby="iyo-shapes">
+    <h2 id="iyo-shapes">{% if term.kind_id == "nodeshape" %}Constraints{% else %}Record template{% endif %}</h2>
+    <p class="muted">
+      {%- if term.kind_id == "nodeshape" %}
+      What this shape requires of what it validates. These are constraints, not
+      definitions: the vocabulary says what each property means.
+      {%- else %}
+      What a complete record looks like, from the SHACL shapes that validate
+      instances of this class. The vocabulary defines the properties; the
+      shapes decide which are required and where their values come from.
+      {%- endif %}
+    </p>
+    {%- for view in term.shapes %}
+    <h3 id="iyo-shape-{{ loop.index }}">{{ view.shape.label }}</h3>
+    <p class="muted">
+      Applies to {{ view.targeting }}.
+      {{ view.fields | length }} field{% if view.fields | length != 1 %}s{% endif %},
+      {{ view.required_count }} required.
+      {%- if view.closed %} No other property may appear.{% endif %}
+    </p>
+    {{ f.fields(view, "iyo-shape-" ~ loop.index, "Fields of " ~ view.shape.label) }}
+    {%- endfor %}
+  </section>
+  {%- endif %}
+
+  {%- if term.constraints %}
+  <section aria-labelledby="iyo-constraints">
+    <h2 id="iyo-constraints">Constraints</h2>
+    <p class="muted">What SHACL shapes require of this property. A shape can
+    make a property required, limit how many values it takes, or restrict them
+    to one concept scheme, none of which the vocabulary itself states.</p>
+    <dl class="facts">
+      {%- for c in term.constraints %}
+      {{ f.fact("Used by", f.refs([c.shape])) }}
+      {%- if c.name %}{{ f.fact("Field name", c.name) }}{% endif %}
+      {%- if c.cardinality %}{{ f.fact("Cardinality", c.cardinality ~ (", required" if c.required else ", optional")) }}{% endif %}
+      {%- if c.value_type %}{{ f.fact("Values", c.value_type) }}{% endif %}
+      {%- if c.in_scheme %}{{ f.fact("Values from", f.refs(c.in_scheme)) }}{% endif %}
+      {%- if c.values %}{{ f.fact("One of", c.values | join(", ")) }}{% endif %}
+      {%- if c.pattern %}{{ f.fact("Pattern", f.mono(c.pattern)) }}{% endif %}
+      {%- if c.description %}{{ f.fact("Description", c.description) }}{% endif %}
+      {%- endfor %}
+    </dl>
+  </section>
+  {%- endif %}
+
+  {%- if term.notes %}
+  <section aria-labelledby="iyo-notes">
+    <h2 id="iyo-notes">Notes</h2>
+    {%- for n in term.notes %}
+    <p{{ n.lang | lang_attr }}>{{ n.value }}</p>
+    {%- endfor %}
+  </section>
+  {%- endif %}
+
+  {%- if term.examples %}
+  <section aria-labelledby="iyo-examples">
+    <h2 id="iyo-examples">Examples</h2>
+    {%- for e in term.examples %}
+    <pre class="scroll-x" tabindex="0"><code lang="zxx" translate="no">{{ e.value }}</code></pre>
+    {%- endfor %}
+  </section>
+  {%- endif %}
+
+  {%- if term.residue %}
+  <section aria-labelledby="iyo-other">
+    <h2 id="iyo-other">Other statements</h2>
+    <p class="muted">Statements this page has no field for, kept so that nothing is lost.</p>
+    <section class="scroll-x" aria-labelledby="iyo-other-caption" tabindex="0">
+      <table>
+        <caption id="iyo-other-caption">Further statements about {{ term.label }}</caption>
+        <thead><tr><th scope="col">Predicate</th><th scope="col">Object</th></tr></thead>
+        <tbody>
+        {%- for s in term.residue %}
+          <tr>
+            <th scope="row"><code lang="zxx" translate="no">{{ s.predicate_label }}</code></th>
+            <td>{% if s.object_is_iri %}<code lang="zxx" translate="no">{{ s.object }}</code>{% else %}<span{{ s.lang | lang_attr }}>{{ s.object }}</span>{% endif %}</td>
+          </tr>
+        {%- endfor %}
+        </tbody>
+      </table>
+    </section>
+  </section>
+  {%- endif %}
+
+  <section aria-labelledby="iyo-statements">
+    <h2 id="iyo-statements">Statements</h2>
+    <pre class="scroll-x" tabindex="0"><code lang="zxx" translate="no">{{ term.turtle }}</code></pre>
+  </section>
+
+  <section aria-labelledby="iyo-formats">
+    <h2 id="iyo-formats">Other formats</h2>
+    <ul class="nav-list">
+      {%- for s in term.siblings %}
+      <li><a href="{{ s.url | rel }}">{{ s.label }}</a></li>
+      {%- endfor %}
+    </ul>
+  </section>
+</article>
+{%- endblock %}

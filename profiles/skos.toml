@@ -1,0 +1,32 @@
+# SKOS concept schemes.
+#
+# Covers what pyLODE's vocpub profile does not: notation, the full note family,
+# collections, and every mapping relation. The concept hierarchy is
+# built from skos:topConceptOf as well as skos:hasTopConcept and skos:broader,
+# because BFFO declares only topConceptOf.
+
+id = "skos"
+extends = "generic"
+title = "SKOS concept scheme"
+
+[detect]
+priority = 40
+document_type = ["http://www.w3.org/2004/02/skos/core#ConceptScheme"]
+
+[annotations]
+label = ["http://www.w3.org/2004/02/skos/core#prefLabel", "http://www.w3.org/2000/01/rdf-schema#label"]
+definition = [
+  "http://www.w3.org/2004/02/skos/core#definition",
+  "http://www.w3.org/2000/01/rdf-schema#comment",
+]
+alt_label = [
+  "http://www.w3.org/2004/02/skos/core#altLabel",
+  "http://www.w3.org/2004/02/skos/core#hiddenLabel",
+]
+note = [
+  "http://www.w3.org/2004/02/skos/core#scopeNote",
+  "http://www.w3.org/2004/02/skos/core#historyNote",
+  "http://www.w3.org/2004/02/skos/core#changeNote",
+  "http://www.w3.org/2004/02/skos/core#editorialNote",
+]
+example = ["http://www.w3.org/2004/02/skos/core#example"]

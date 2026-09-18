@@ -1,0 +1,30 @@
+/target
+/dist
+**/*.rs.bk
+*.pdb
+
+# Local scratch, never committed
+/scratch
+/tmp
+
+# Working files from the plan-execution skill: task briefs, implementer
+# reports and diffs between commits that are already in this history. The
+# skill writes its own `.gitignore` containing `*`, so this is currently
+# belt and braces. It is here so the repository states the intent itself
+# rather than inheriting it from a tool's housekeeping.
+/.superpowers
+
+# Design and engineering notes. They cite a research corpus that lives outside
+# this repository and they are written for whoever is building the tool, not
+# for whoever installs it.
+/dev-docs
+
+# macOS
+.DS_Store
+
+# Personal, machine-local notes: CLAUDE.local.md and anything else a checkout
+# wants to keep to itself.
+*.local.md
+
+# Copied from a build so the Node harness can import it (tests/hosts/README.md).
+/tests/hosts/worker.mjs

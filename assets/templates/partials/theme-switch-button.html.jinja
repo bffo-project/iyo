@@ -1,0 +1,41 @@
+{#-
+  The control itself, at the end of the site header. Ships `hidden`; the
+  script below removes that and wires it, so nothing appears without
+  JavaScript. See `partials/theme-switch.html.jinja` for why.
+-#}
+<button type="button" class="theme-switch" id="iyo-theme-switch" hidden>
+  <span class="theme-switch-label">Theme</span>
+  <span class="theme-switch-value" id="iyo-theme-value">system</span>
+</button>
+<script>
+(function () {
+  var button = document.getElementById("iyo-theme-switch");
+  var value = document.getElementById("iyo-theme-value");
+  if (!button || !value) return;
+  var order = ["system", "light", "dark"];
+  function read() {
+    try {
+      var stored = localStorage.getItem("iyo-theme");
+      return stored === "light" || stored === "dark" ? stored : "system";
+    } catch (e) {
+      return "system";
+    }
+  }
+  function apply(mode) {
+    if (mode === "system") {
+      document.documentElement.removeAttribute("data-theme");
+      try { localStorage.removeItem("iyo-theme"); } catch (e) {}
+    } else {
+      document.documentElement.setAttribute("data-theme", mode);
+      try { localStorage.setItem("iyo-theme", mode); } catch (e) {}
+    }
+    value.textContent = mode;
+    button.setAttribute("aria-label", "Colour scheme: " + mode + ". Activate to change.");
+  }
+  apply(read());
+  button.addEventListener("click", function () {
+    apply(order[(order.indexOf(read()) + 1) % order.length]);
+  });
+  button.hidden = false;
+})();
+</script>

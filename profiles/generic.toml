@@ -1,0 +1,42 @@
+# The fallback profile. Every other profile extends it.
+#
+# A profile is data, not code: it maps model fields to lists of predicates in
+# priority order, and says how a document is recognised. Adding support for a
+# new annotation style needs a file here, not a Rust change.
+
+id = "generic"
+title = "Generic RDFS"
+
+[detect]
+priority = 0
+
+[annotations]
+label = [
+  "http://www.w3.org/2000/01/rdf-schema#label",
+  "http://purl.org/dc/terms/title",
+]
+definition = [
+  "http://www.w3.org/2000/01/rdf-schema#comment",
+  "http://purl.org/dc/terms/description",
+  "http://purl.org/dc/elements/1.1/description",
+]
+document_title = [
+  "http://purl.org/dc/terms/title",
+  "http://www.w3.org/2000/01/rdf-schema#label",
+]
+document_description = [
+  "http://purl.org/dc/terms/description",
+  "http://purl.org/dc/elements/1.1/description",
+  "http://www.w3.org/2000/01/rdf-schema#comment",
+]
+comment = []
+alt_label = []
+note = []
+example = []
+see_also = ["http://www.w3.org/2000/01/rdf-schema#seeAlso"]
+status = []
+deprecated = ["http://www.w3.org/2002/07/owl#deprecated"]
+replaced_by = ["http://purl.org/dc/terms/isReplacedBy"]
+created = ["http://purl.org/dc/terms/created"]
+modified = ["http://purl.org/dc/terms/modified"]
+issued = ["http://purl.org/dc/terms/issued"]

@@ -1,0 +1,146 @@
+{
+  "_comment": [
+    "The negotiation contract of docs/output-convention.md,",
+    "written once and checked against four implementations: the Rust resolver,",
+    "the JavaScript the Cloudflare adapter generates, `iyo serve`, and a live",
+    "origin via `iyo conform`. They are measured against this file rather than",
+    "against each other, so agreeing on a wrong answer still fails.",
+    "",
+    "Cases name a subject role, not a path, so the same sentences run on the",
+    "fixture and on a deployment. Roles are resolved by one resolver in Rust:",
+    "see src/conform/cases.rs."
+  ],
+  "cases": [
+    { "name": "a browser gets the page", "group": "negotiation",
+      "subject": "term",
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "turtle is redirected to its sibling", "group": "negotiation",
+      "subject": "term", "accept": "text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "json-ld is redirected to its sibling", "group": "negotiation",
+      "subject": "term", "accept": "application/ld+json",
+      "expect": { "kind": "redirect", "media_type": "application/ld+json" } },
+
+    { "name": "markdown is redirected to its sibling", "group": "negotiation",
+      "subject": "term", "accept": "text/markdown",
+      "expect": { "kind": "redirect", "media_type": "text/markdown" } },
+
+    { "name": "a bare wildcard gets the default", "group": "negotiation",
+      "subject": "term", "accept": "*/*",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "q-values rank html above turtle", "group": "negotiation",
+      "subject": "term", "accept": "text/turtle;q=0.1, text/html",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "q-values rank turtle above html", "group": "negotiation",
+      "subject": "term", "accept": "text/html;q=0.1, text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "an explicit type beats a wildcard whatever the q-values say",
+      "group": "negotiation",
+      "subject": "term", "accept": "*/*;q=1.0, text/turtle;q=0.1",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "a client that asked only for rdf gets rdf", "group": "negotiation",
+      "subject": "term", "accept": "application/rdf+xml",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "no accept header gets the default", "group": "negotiation",
+      "subject": "term",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "a type nobody publishes gets the default rather than a 406",
+      "group": "negotiation",
+      "subject": "term", "accept": "image/png",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "q=0 means not that one", "group": "negotiation",
+      "subject": "term", "accept": "text/html;q=0, text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "format overrides accept", "group": "negotiation",
+      "subject": "term", "accept": "text/html", "query": "format=ttl",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "connegp mediatype overrides accept", "group": "negotiation",
+      "subject": "term", "accept": "text/html", "query": "_mediatype=text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "a term the site owns the name of is served from its directory",
+      "group": "negotiation",
+      "subject": "dir-term", "accept": "text/html",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "a term served from a directory keeps its layout",
+      "group": "negotiation",
+      "subject": "dir-term", "accept": "text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "a request naming a representation is not a negotiation",
+      "group": "negotiation",
+      "subject": "sibling", "accept": "text/turtle",
+      "expect": { "kind": "file", "media_type": "text/turtle" } },
+
+    { "name": "a name that is not a term does not resolve",
+      "group": "negative perimeter",
+      "subject": "absent-name", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a namespace document is not a term", "group": "negotiation",
+      "subject": "namespace", "accept": "text/html",
+      "expect": { "kind": "file", "media_type": "text/html" } },
+
+    { "name": "a nested namespace is not a term of its parent",
+      "group": "negotiation",
+      "subject": "nested-namespace", "accept": "text/html",
+      "expect": { "kind": "file", "media_type": "text/html" } },
+
+    { "name": "a term inside a release negotiates like the newest one",
+      "group": "releases",
+      "subject": "release-term", "accept": "text/html",
+      "expect": { "kind": "serve", "as": "text/html" } },
+
+    { "name": "and redirects to the sibling inside that release",
+      "group": "releases",
+      "subject": "release-term", "accept": "text/turtle",
+      "expect": { "kind": "redirect", "media_type": "text/turtle" } },
+
+    { "name": "a name that is not a term is not one inside a release either",
+      "group": "negative perimeter",
+      "subject": "absent-release-name", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a segment that is not a release is left to the file layer",
+      "group": "negative perimeter",
+      "subject": "absent-release", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a case variant of a term does not resolve to it",
+      "group": "negative perimeter",
+      "subject": "case-variant", "accept": "text/html",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a reserved segment does not resolve as a term's turtle sibling",
+      "group": "negative perimeter",
+      "subject": "reserved-segment", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a path below a term is not a term", "group": "negative perimeter",
+      "subject": "sub-term-path", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "an extension nobody publishes is not a negotiation",
+      "group": "negative perimeter",
+      "subject": "sibling-unpublished", "accept": "text/turtle",
+      "expect": { "kind": "absent" } },
+
+    { "name": "a namespace with no terms matches no name",
+      "group": "negative perimeter",
+      "subject": "empty-namespace", "accept": "text/turtle",
+      "expect": { "kind": "absent" } }
+  ]
+}

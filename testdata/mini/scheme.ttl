@@ -1,0 +1,43 @@
+# A concept scheme whose hierarchy is declared with skos:topConceptOf only,
+# never skos:hasTopConcept, which is the case the model has to handle.
+
+@prefix ex-cat:  <https://example.org/vocabulary/category/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+
+ex-cat: a skos:ConceptScheme, owl:Ontology ;
+    dcterms:title "Example Categories" ;
+    dcterms:description "What a widget fundamentally is." .
+
+ex-cat:round a skos:Concept ;
+    skos:inScheme ex-cat: ;
+    skos:topConceptOf ex-cat: ;
+    skos:notation "round" ;
+    skos:prefLabel "Round"@en ;
+    skos:definition "Widgets that are round."@en .
+
+ex-cat:square a skos:Concept ;
+    skos:inScheme ex-cat: ;
+    skos:topConceptOf ex-cat: ;
+    skos:notation "square" ;
+    skos:prefLabel "Square"@en ;
+    skos:definition "Widgets that are square."@en .
+
+ex-cat:rounded_square a skos:Concept ;
+    skos:inScheme ex-cat: ;
+    skos:broader ex-cat:square ;
+    skos:notation "rounded_square" ;
+    skos:prefLabel "Rounded square"@en ;
+    skos:definition "Widgets that are nearly square."@en ;
+    skos:relatedMatch <https://example.org/other/roundish> .
+
+# A concept whose local name is a file stem the site itself owns. Written flat
+# it would be `index.html`, which is also the scheme's own page, so one would
+# silently overwrite the other.
+ex-cat:index a skos:Concept ;
+    skos:inScheme ex-cat: ;
+    skos:topConceptOf ex-cat: ;
+    skos:notation "index" ;
+    skos:prefLabel "Index"@en ;
+    skos:definition "A concept named after a reserved file stem."@en .

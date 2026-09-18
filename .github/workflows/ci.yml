@@ -1,0 +1,78 @@
+name: CI
+
+# Until this file existed nothing in this repository checked itself: the tests,
+# the clig.dev suite, the contrast gate and the byte-identical rebuild all ran
+# only when someone typed `cargo test` on their own machine. A flaky test in
+# `tests/cli.rs` survived that way for some time, found only by running the
+# suite repeatedly by hand.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch makes the older answer worthless, so stop
+# paying for it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: fmt and clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Formatting
+        run: cargo fmt --all --check
+      # Warnings are failures here and nowhere else. Keeping `-D warnings` off
+      # the test job means a new lint in a future stable release breaks this
+      # job, which is about lints, rather than the job that says whether the
+      # tool works.
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Both results are wanted. Without this, a Linux failure hides whether
+      # macOS still passes, which is the platform the tool is developed on.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: cargo test
+      # `probe` and `conform` shell out to curl, which both runners have.
+      # `typst` is not installed, so the PDF compile test prints
+      # "skipped: typst is not on PATH" and passes without exercising the
+      # Typst path. Installing a pinned Typst here would close that gap.
+      - name: Record the external programs available
+        run: |
+          curl --version | head -1
+          typst --version || echo "typst: not installed, the PDF compile test skips itself"
+
+  msrv:
+    name: minimum supported Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The tool is developed on a much newer toolchain, so the declared
+      # minimum drifts the moment a language feature moves past it. This job
+      # is the only thing that notices: it caught `rust-version = "1.87"`
+      # being false, because let-chains need 1.88.
+      #
+      # The patch version is spelled out in both steps on purpose. `rustup
+      # toolchain install 1.88` lands a toolchain named `1.88.0`, and asking
+      # for `1.88` afterwards does not always resolve to it.
+      - name: Install the declared minimum toolchain
+        run: rustup toolchain install 1.88.0 --profile minimal
+      # `rustup run` rather than `cargo +toolchain`, which needs cargo to be
+      # the rustup shim. It is on these runners; this works either way.
+      - name: Build and test on 1.88.0
+        run: rustup run 1.88.0 cargo test

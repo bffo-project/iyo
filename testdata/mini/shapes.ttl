@@ -1,0 +1,39 @@
+# A shapes document whose own IRI nests under the vocabulary namespace, and
+# whose shapes are named in that namespace although they are defined here.
+
+@prefix ex:      <https://example.org/vocab/> .
+@prefix ex-cat:  <https://example.org/vocabulary/category/> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/vocab/shapes/> a owl:Ontology ;
+    # A version string but no version IRI: archived only under `all`.
+    owl:versionInfo "0.1.0" ;
+    dcterms:title "Example Shapes" ;
+    dcterms:description "Validation constraints for widgets." .
+
+ex:WidgetShape a sh:NodeShape ;
+    sh:targetSubjectsOf ex:serial ;
+    rdfs:label "Widget Shape" ;
+    rdfs:comment "Validation shape for widget records." ;
+    # A boolean, so the JSON-LD writer has one to render natively.
+    sh:closed false ;
+    sh:property [
+        sh:path ex:category ;
+        sh:name "category" ;
+        sh:description "The category of the widget." ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:node [ sh:property [ sh:path skos:inScheme ; sh:hasValue ex-cat: ] ] ;
+    ] ;
+    sh:property [
+        sh:path ex:serial ;
+        sh:name "serial" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .

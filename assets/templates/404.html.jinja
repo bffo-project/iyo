@@ -1,0 +1,15 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Page not found{% endblock %}
+
+{% block main %}
+<h1>Page not found</h1>
+<p class="lead">There is no page at this address.</p>
+<p>If you followed a term IRI, the term may have been renamed or removed. The
+places to look are below.</p>
+<ul class="nav-list">
+  <li><a href="{{ site.base_url | rel }}">The vocabulary index</a></li>
+  <li><a href="{{ site.terms_url | rel }}">terms.json</a>, every term this release publishes</li>
+  <li><a href="{{ site.llms_url | rel }}">llms.txt</a>, the same list for agents</li>
+</ul>
+{%- endblock %}

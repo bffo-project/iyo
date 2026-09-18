@@ -1,0 +1,56 @@
+{% extends "base.html.jinja" %}
+{% import "partials/facts.html.jinja" as f %}
+
+{% block title %}{{ site.title }}{% endblock %}
+
+{% block meta %}
+{%- if site.description %}
+<meta name="description" content="{{ site.description | oneline }}">
+{%- endif %}
+{%- endblock %}
+
+{% block links %}
+<link rel="canonical" href="{{ site.base_url | url }}">
+<link rel="describedby" href="{{ site.llms_url | rel }}">
+<link rel="alternate" type="text/turtle" href="{{ site.release_ttl_url | rel }}" title="Turtle">
+{%- if page.license %}
+<link rel="license" href="{{ page.license | url }}">
+{%- endif %}
+{%- endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ page.jsonld | safe }}</script>
+{%- endblock %}
+
+{% block main %}
+<h1>{{ site.title }}</h1>
+{%- if site.description %}
+<p class="lead">{{ site.description }}</p>
+{%- endif %}
+<p class="muted">{{ site.document_count }} documents, {{ site.term_count }} terms.</p>
+
+<section aria-labelledby="iyo-vocabularies">
+  <h2 id="iyo-vocabularies">Vocabularies</h2>
+  <dl class="term-list">
+    {%- for ns in site.namespaces %}
+    <div class="fact">
+      <dt><a href="{{ ns.url | rel }}">{{ ns.title | default(ns.iri) }}</a></dt>
+      <dd>
+        <code lang="zxx" translate="no">{{ ns.iri }}</code>
+        <span class="muted">{{ ns.term_count }} terms</span>
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+</section>
+
+<section aria-labelledby="iyo-machine">
+  <h2 id="iyo-machine">For machines</h2>
+  <ul class="nav-list">
+    <li><a href="{{ site.llms_url | rel }}">llms.txt</a>, the agent index of every vocabulary</li>
+    <li><a href="{{ site.release_ttl_url | rel }}">release.ttl</a>, every document of this release in one graph</li>
+    <li><a href="{{ site.terms_url | rel }}">terms.json</a>, every term with its representation URLs</li>
+    <li><a href="{{ site.manifest_url | rel }}">manifest.json</a>, how each IRI resolves and to which media type</li>
+  </ul>
+</section>
+{%- endblock %}

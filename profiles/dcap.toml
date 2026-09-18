@@ -1,0 +1,47 @@
+# Application-profile style OWL: BFFO, and DCAP vocabularies generally.
+#
+# Recognised by an owl:Ontology document that declares OWL terms. Definitions
+# come from rdfs:comment, which is where application profiles put them, and
+# usage notes on reused terms come from vann:usageNote or skos:scopeNote (the
+# documented way) with rdfs:comment as the fallback that BFFO actually uses.
+
+id = "dcap"
+extends = "generic"
+title = "OWL application profile"
+
+[detect]
+priority = 30
+document_type = ["http://www.w3.org/2002/07/owl#Ontology"]
+file_has_type = [
+  "http://www.w3.org/2002/07/owl#Class",
+  "http://www.w3.org/2002/07/owl#ObjectProperty",
+  "http://www.w3.org/2002/07/owl#DatatypeProperty",
+  "http://www.w3.org/2002/07/owl#AnnotationProperty",
+]
+
+[annotations]
+label = [
+  "http://www.w3.org/2000/01/rdf-schema#label",
+  "http://www.w3.org/2004/02/skos/core#prefLabel",
+  "http://purl.org/dc/terms/title",
+]
+definition = [
+  "http://www.w3.org/2000/01/rdf-schema#comment",
+  "http://www.w3.org/2004/02/skos/core#definition",
+  "http://purl.org/dc/terms/description",
+]
+alt_label = ["http://www.w3.org/2004/02/skos/core#altLabel"]
+note = [
+  "http://purl.org/vocab/vann/usageNote",
+  "http://www.w3.org/2004/02/skos/core#scopeNote",
+  "http://www.w3.org/2004/02/skos/core#editorialNote",
+]
+example = [
+  "http://purl.org/vocab/vann/example",
+  "http://www.w3.org/2004/02/skos/core#example",
+]
+status = [
+  "http://www.w3.org/ns/adms#status",
+  "http://www.w3.org/2003/06/sw-vocab-status/ns#term_status",
+]
+replaced_by = ["http://purl.org/dc/terms/isReplacedBy"]

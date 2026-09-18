@@ -1,0 +1,28 @@
+# DCMI Metadata Terms and its siblings.
+#
+# Recognised by RDFS-level terms with no owl:Ontology header. DCMI puts the
+# definition in rdfs:comment and an additional comment in dcterms:description,
+# which is the opposite of the usual reading, so the order below matters.
+
+id = "dcmi"
+extends = "generic"
+title = "DCMI-style RDFS vocabulary"
+
+[detect]
+priority = 20
+file_has_type = [
+  "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+  "http://purl.org/dc/dcam/VocabularyEncodingScheme",
+]
+file_has_predicate = [
+  "http://purl.org/dc/dcam/rangeIncludes",
+  "http://purl.org/dc/dcam/domainIncludes",
+  "http://purl.org/dc/dcam/memberOf",
+]
+
+[annotations]
+label = ["http://www.w3.org/2000/01/rdf-schema#label"]
+definition = ["http://www.w3.org/2000/01/rdf-schema#comment"]
+comment = ["http://purl.org/dc/terms/description"]
+note = ["http://purl.org/dc/terms/description"]
+issued = ["http://purl.org/dc/terms/issued"]

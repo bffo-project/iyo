@@ -1,0 +1,121 @@
+name: Release
+
+# Tagging is the whole trigger. `cargo publish` is deliberately not here: the
+# crate has never been published, and automating a step that has not been done
+# once by hand encodes a guess about how it should go.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # A tag that disagrees with Cargo.toml produces a release whose binary
+  # reports a different version from its own filename. Cheap to check, and
+  # impossible to fix after the release exists.
+  check-version:
+    name: tag matches Cargo.toml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          crate=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          echo "tag: $TAG   Cargo.toml: $crate"
+          if [ "$TAG" != "v$crate" ]; then
+            echo "::error::tag $TAG does not match Cargo.toml version $crate"
+            exit 1
+          fi
+
+  # One job creates the release, so the build jobs never race to create it.
+  # It starts as a draft: a failed build must not leave half a release
+  # published, and a draft is invisible until the last job flips it.
+  draft:
+    name: open a draft release
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists, reusing it"
+          else
+            gh release create "$TAG" --draft --verify-tag \
+              --title "$TAG" \
+              --notes "Binaries built from the tag. Check them against the .sha256 files."
+          fi
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: draft
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # The binary is run before it is published. A release that cannot report
+      # its own version is not a release.
+      - name: Check the binary runs
+        run: ./target/${{ matrix.target }}/release/iyo --version
+
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          name="iyo-${TAG}-${TARGET}"
+          mkdir "$name"
+          cp "target/${TARGET}/release/iyo" "$name/"
+          cp LICENSE README.md "$name/"
+          cp -r docs "$name/"
+          tar czf "${name}.tar.gz" "$name"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256"
+          else
+            shasum -a 256 "${name}.tar.gz" > "${name}.tar.gz.sha256"
+          fi
+          ls -l "${name}.tar.gz"
+
+      # `gh` is preinstalled on the runners, so no third-party action is needed
+      # to attach files. The draft already exists, so this only uploads.
+      - name: Upload to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" iyo-*.tar.gz iyo-*.tar.gz.sha256 --clobber
+
+  publish:
+    name: publish the release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flip the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release edit "$TAG" --draft=false
+          gh release view "$TAG" --json assets \
+            --jq '.assets[] | "\(.name)  \(.size) bytes"'
