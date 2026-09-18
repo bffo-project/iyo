@@ -109,6 +109,24 @@ context, the release as a single graph, and the build's own audit results.
 layout, and is the page to read if you want to implement the convention
 elsewhere.
 
+## Example output
+
+One vocabulary, built twice by the same version of iyo, differing only in
+`--theme`:
+
+- [Default theme](https://bffo-project.github.io/iyo-demo/default/)
+- [BFFO theme](https://bffo-project.github.io/iyo-demo/bffo/)
+
+The sources and the workflow that builds them are in
+[bffo-project/iyo-demo](https://github.com/bffo-project/iyo-demo), which
+installs iyo from crates.io rather than from a checkout.
+
+They are served by GitHub Pages, which cannot negotiate, so they show the pages,
+the four representations per term and the file layout, but not the negotiation.
+`iyo conform` scores that deployment 16 of 54: every case it passes is one that
+must *not* resolve, and everything requiring negotiation fails. That is the gap
+the generated host configurations exist to close.
+
 ## Configuration
 
 Flags work without a config file. For a real vocabulary the settings go in
@@ -148,8 +166,11 @@ a keyboard walk, a zoom test and a screen-reader pass.
 
 ## Limitations
 
-- **The generated host configurations have not been tested on those hosts.**
-  They are checked against this tool's own `serve`, on localhost.
+- **Most generated host configurations have not been tested on those hosts.**
+  GitHub Pages is the exception, and measuring a real deployment corrected what
+  the adapter claimed: term IRIs do resolve there, to HTML, which it previously
+  said they did not. Cloudflare, Apache and Vercel are still only checked
+  against this tool's own `serve`, on localhost.
 - **No starting configuration ships.** There is no `iyo init` and no example
   `iyo.toml` beyond the fragment above.
 - **PDF output depends on the Typst version.** Below Typst 0.15 the PDF is
