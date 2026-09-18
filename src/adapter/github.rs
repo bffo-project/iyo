@@ -1,10 +1,12 @@
 //! GitHub Pages.
 //!
-//! There is nothing to negotiate with: Pages serves files. The adapter exists
-//! so that the option is honest rather than absent, and so that the two files
-//! Pages does need are not forgotten. An IRI without an extension will not
-//! resolve here, which is why the README says to pair this with w3id or a
-//! resolver rather than treating it as a deployment on its own.
+//! There is nothing to negotiate with: Pages serves files and ignores `Accept`.
+//! A term IRI *does* resolve here: Pages answers an extensionless path with the
+//! matching `.html` file, and redirects a directory to its trailing slash. What
+//! it cannot do is resolve to anything but HTML. This module claimed the
+//! opposite until a real deployment was measured, where `/demo/Instrument`
+//! answered 200 rather than 404. Pair Pages with w3id or a resolver so the
+//! identity IRIs reach the other representations, not to make them resolve.
 
 use crate::render::manifest::Manifest;
 use std::fmt::Write;
@@ -13,8 +15,9 @@ pub fn emit(manifest: &Manifest) -> Vec<(String, String)> {
     let mut notes = String::new();
     let _ = writeln!(
         notes,
-        "# What will and will not resolve on GitHub Pages\n\n\
-         Pages serves the files in this build and negotiates nothing. Concretely:\n"
+        "# What resolves on GitHub Pages, and what it resolves to\n\n\
+         Pages serves the files in this build and ignores `Accept` entirely. A term\n\
+         IRI does resolve, but only ever to HTML, whatever the client asked for:\n"
     );
     for ns in &manifest.namespaces {
         let Some(example) = ns.terms.first() else {
@@ -42,11 +45,24 @@ pub fn emit(manifest: &Manifest) -> Vec<(String, String)> {
             None => format!("{}{example}", ns.mount),
         };
         let site_root = manifest.site_root.trim_end_matches('/');
-        let _ = writeln!(
-            notes,
-            "- `{}{example}` does **not** resolve; `{site_root}{file}` does.",
-            ns.iri_base
-        );
+        // A directory is reached through a redirect to its trailing slash, so
+        // the example line has to say which shape this term actually is: when
+        // the term that sorts first happens to be a directory one, claiming a
+        // bare 200 describes a response the host never sends.
+        if ns.dir_terms.iter().any(|t| t == example) {
+            let _ = writeln!(
+                notes,
+                "- `{}{example}` answers 301 to `{}{example}/`, and its file is a directory: \
+                 `{site_root}{file}`.",
+                ns.iri_base, ns.iri_base
+            );
+        } else {
+            let _ = writeln!(
+                notes,
+                "- `{}{example}` answers 200 with `{site_root}{file}`.",
+                ns.iri_base
+            );
+        }
         // A term that falls back to the directory layout has a differently
         // shaped file, and the example above is whichever term sorts first,
         // which is usually a flat one. Naming them is the whole point of
@@ -58,15 +74,18 @@ pub fn emit(manifest: &Manifest) -> Vec<(String, String)> {
             };
             let _ = writeln!(
                 notes,
-                "- `{}{local}` does **not** resolve, and its file is a directory: \
+                "- `{}{local}` answers 301 to `{}{local}/`, and its file is a directory: \
                  `{site_root}{file}`.",
-                ns.iri_base
+                ns.iri_base, ns.iri_base
             );
         }
     }
     let _ = writeln!(
         notes,
-        "\nPair this with w3id.org or a `dcmi-ns` resolver, whose adapters are beside\n\
+        "\n`Accept: text/turtle` on any of these gets that same HTML page rather\n\
+         than the Turtle sibling: the other representations are reachable only by\n\
+         naming the file. A path this build mints nothing for answers 404.\n\n\
+         Pair this with w3id.org or a `dcmi-ns` resolver, whose adapters are beside\n\
          this one, and point the redirects at these files."
     );
 

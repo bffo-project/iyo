@@ -236,6 +236,40 @@ fn the_github_notes_name_the_file_that_resolves_not_a_guess() {
     );
 }
 
+/// The notes told readers a term IRI does **not** resolve on GitHub Pages. It
+/// does: Pages answers an extensionless path with the matching `.html` file,
+/// and redirects a directory to its trailing slash. Measured on a real
+/// deployment, `/demo/Instrument` answered 200, not 404.
+///
+/// The wrong claim survived because every other test here checks which *file*
+/// the note names, and none checked what the note said would happen to the
+/// IRI. A note that names the right file and describes the wrong response is
+/// still wrong, so this asserts the claim rather than the path.
+#[test]
+fn the_github_notes_do_not_claim_a_term_iri_fails_to_resolve() {
+    let manifest = manifest_of("https://example.org/");
+    let notes = file(
+        &adapter::emit(&manifest, Host::GitHubPages),
+        "RESOLUTION.md",
+    );
+    assert!(
+        !notes.contains("does **not** resolve"),
+        "the note says term IRIs do not resolve; Pages answers them with HTML: {notes}"
+    );
+    // A flat term answers 200 outright; a directory one arrives via a 301.
+    assert!(notes.contains("answers 200 with"), "{notes}");
+    assert!(
+        notes.contains("answers 301 to"),
+        "a directory-layout term is not described as a redirect: {notes}"
+    );
+    // The real limitation still has to be stated, or the correction has simply
+    // traded one misleading note for another.
+    assert!(
+        notes.contains("ignores `Accept`") && notes.contains("only ever to HTML"),
+        "the note no longer states what Pages cannot do: {notes}"
+    );
+}
+
 /// The `dcmi-ns` schema cannot express a per-term layout, so the projection
 /// carries the list and the README says what a resolver built from it would
 /// get wrong. Dropping the list, which is what this adapter used to do, made
