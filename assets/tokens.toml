@@ -7,8 +7,8 @@
 #
 # Every value here is compiled to a CSS custom property in `assets/tokens.css`
 # and every pair the templates actually produce is checked by the build-time
-# contrast gate before a byte is written. The ratios are in
-# notes-prep/tokens.md and are reproduced by notes-prep/contrast.py.
+# contrast gate before a byte is written. The gate, its pairs and its
+# thresholds are documented in docs/theming.md.
 
 schema = "iyo.tokens/1"
 

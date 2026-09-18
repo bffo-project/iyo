@@ -10,8 +10,8 @@
 //! anything this program chose.
 //!
 //! No dependency was the reason. `libc` is not in `Cargo.toml` and adding one
-//! for two symbols is not a trade this project makes (`CLAUDE.md`: keep the
-//! dependency count small). But `signal` and `raise` are in libc, libc is
+//! for two symbols is not a trade this project makes: the dependency count
+//! stays small. But `signal` and `raise` are in libc, libc is
 //! linked into every Unix Rust binary already, and declaring the two
 //! prototypes is a few lines. That is what this module is.
 //!
